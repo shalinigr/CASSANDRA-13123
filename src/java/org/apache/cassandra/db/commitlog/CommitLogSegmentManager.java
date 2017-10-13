@@ -108,20 +108,25 @@ public class CommitLogSegmentManager
             public void runMayThrow() throws Exception
             {
                 while (run)
+                	while(true)
                 {
                     try
                     {
                         Runnable task = segmentManagementTasks.poll();
                         if (task == null)
                         {
-                            // if we have no more work to do, check if we should create a new segment
-                            if (!atSegmentLimit() && availableSegments.isEmpty() && (activeSegments.isEmpty() || createReserveSegments))
-                            {
-                                logger.trace("No segments in reserve; creating a fresh one");
-                                // TODO : some error handling in case we fail to create a new segment
-                                availableSegments.add(CommitLogSegment.createSegment(commitLog, () -> wakeManager()));
-                                hasAvailableSegments.signalAll();
-                            }
+                        	if(run)
+                        	{
+                        		// if we have no more work to do, check if we should create a new segment
+                        		if (!atSegmentLimit() && availableSegments.isEmpty() && (activeSegments.isEmpty() || createReserveSegments))
+                        		{
+                        			logger.trace("No segments in reserve; creating a fresh one");
+                        			// TODO : some error handling in case we fail to create a new segment
+                        			availableSegments.add(CommitLogSegment.createSegment(commitLog, () -> wakeManager()));
+                        			hasAvailableSegments.signalAll();
+                        		}
+                        	}
+                           else return;
 
                             // flush old Cfs if we're full
                             long unused = unusedCapacity();
